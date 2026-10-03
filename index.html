@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgriTech S3: Thesis Presentation & Control Dashboard</title>
+    <style>
+        :root {
+            --bg: #fafafa;
+            --surface: #ffffff;
+            --primary: #4c1d95; /* Deep Violet */
+            --primary-light: #f3e8ff; /* Soft Violet Tint */
+            --accent: #7c3aed; /* Vibrant Purple */
+            --text-dark: #1e1b4b; /* Deep Indigo Black */
+            --text-muted: #6b7280;
+            --success: #10b981;
+            --danger: #ef4444;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg);
+            color: var(--text-dark);
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Top Header Navigation Bar */
+        header {
+            background: linear-gradient(135deg, var(--primary), #2e1065);
+            color: white;
+            padding: 1.25rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(76, 29, 149, 0.2);
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 1.4rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        /* Master Demo Toggle Bar */
+        .demo-pill-box {
+            display: flex;
+            align-items: center;
+            background-color: rgba(255, 255, 255, 0.12);
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            gap: 10px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+        }
+
+        @media (max-width: 900px) {
+            .container { grid-template-columns: 1fr; }
+        }
+
+        /* Aesthetic Dashboard Cards */
+        .card {
+            background: var(--surface);
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03), 0 2px 4px -1px rgba(0,0,0,0.02);
+            border: 1px solid #f3f4f6;
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+
+        h2 {
+            margin-top: 0;
+            font-size: 1.2rem;
+            color: var(--primary);
+            border-bottom: 2px solid var(--primary-light);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Grid for Soil Telemetry */
+        .telemetry-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .data-box {
+            background-color: var(--primary-light);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid #e9d5ff;
+            text-align: center;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .data-value {
+            font-size: 2.75rem;
+            font-weight: 800;
+            color: var(--primary);
+            margin: 0.5rem 0;
+        }
+
+        .status-pill {
+            display: inline-block;
+            padding: 0.25rem 0.85rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .status-wet { background-color: #d1fae5; color: var(--success); }
+        .status-dry { background-color: #fee2e2; color: var(--danger); }
+
+        /* Actuator Toggles and Switches */
+        .control-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.1rem 0;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .control-row:last-child { border-bottom: none; }
+        .control-label h3 { margin: 0; font-size: 1.05rem; color: var(--text-dark); }
+        .control-label p { margin: 0; font-size: 0.85rem; color: var(--text-muted); }
+
+        /* Switch Styling */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 48px;
+            height: 24px;
+        }
+
+        .switch input { opacity: 0; width: 0; height: 0; }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #cbd5e1;
+            transition: .25s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px; width: 18px;
+            left: 3px; bottom: 3px;
+            background-color: white;
+            transition: .25s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider { background-color: var(--accent); }
+        input:checked + .slider:before { transform: translateX(24px); }
+
+        /* Demo Mode Control Visual Elements */
+        .simulator-box {
+            border-top: 4px solid var(--accent);
+            transition: all 0.3s ease;
+        }
+
+        .simulator-box.disabled {
+            opacity: 0.4;
+            pointer-events: none;
+        }
+
+        .range-wrapper {
+            margin-top: 1.25rem;
+        }
+
+        .range-wrapper label {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 0.4rem;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            accent-color: var(--accent);
+        }
+
+        .indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+            background-color: #cbd5e1;
+            margin-right: 6px;
+        }
+        .indicator.active { background-color: var(--success); box-shadow: 0 0 8px var(--success); }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>AgriTech Subsystem UI</h1>
+        <div class="demo-pill-box">
+            <span>DEMO MODE</span>
+            <label class="switch">
+                <input type="checkbox" id="demo-master" checked onchange="toggleDemoMode()">
+                <span class="slider"></span>
+            </label>
+        </div>
+    </header>
+
+    <div class="container">
+        
+        <!-- LEFT: MAIN PRODUCTION TELEMETRY PANEL -->
+        <div>
+            <!-- TELEMETRY BLOCK -->
+            <div class="card">
+                <h2>Field Telemetry Readout</h2>
+                <div class="telemetry-grid">
+                    <!-- BED 1 -->
+                    <div class="data-box" id="box-bed1">
+                        <div style="font-weight: 600; font-size: 0.9rem; color: var(--text-muted); letter-spacing: 0.5px;">PLANTER BED 1</div>
+                        <div class="data-value" id="val-bed1">65%</div>
+                        <div class="status-pill status-wet" id="pill-bed1">MOIST</div>
+                    </div>
+                    <!-- BED 2 -->
+                    <div class="data-box" id="box-bed2">
+                        <div style="font-weight: 600; font-size: 0.9rem; color: var(--text-muted); letter-spacing: 0.5px;">PLANTER BED 2</div>
+                        <div class="data-value" id="val-bed2">28%</div>
+                        <div class="status-pill status-dry" id="pill-bed2">DRY</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- OVERRIDE BUTTON BLOCK -->
+            <div class="card">
+                <h2>Manual Override System</h2>
+                
+                <div class="control-row">
+                    <div class="control-label">
+                        <h3>1HP Centrifugal Water Pump</h3>
+                        <p>Manually forces the high-voltage CJX2 contactor loop gate open/close.</p>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="switch-pump" onchange="processControlAction()">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="control-row">
+                    <div class="control-label">
+                        <h3>Solenoid Valve 1 (Bed 1 Channel)</h3>
+                        <p>Controls water distribution gating dedicated to Planter Bed 1.</p>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="switch-v1" onchange="processControlAction()">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="control-row">
+                    <div class="control-label">
+                        <h3>Solenoid Valve 2 (Bed 2 Channel)</h3>
+                        <p>Controls water distribution gating dedicated to Planter Bed 2.</p>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="switch-v2" onchange="processControlAction()">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT: PRESENTATION SANDBOX (HIDES WHEN DEMO IS OFF) -->
+        <div>
+            <div class="card simulator-box" id="sandbox-card">
+                <h2>Thesis Defense Control</h2>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.25rem;">Adjust these sliders to simulate real-time soil variance for the thesis panel.</p>
+                
+                <div style="font-size: 0.9rem; margin-bottom: 1.5rem;">
+                    <span class="indicator" id="ind-flow"></span> Flow Telemetry: 
+                    <span id="txt-flow" style="font-weight: bold; color: var(--primary); margin-left: 5px;">0.0 L/m</span>
